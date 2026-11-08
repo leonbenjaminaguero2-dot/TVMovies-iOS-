@@ -45,3 +45,16 @@ struct NetworkPoster: View {
         .clipped()
     }
 }
+
+extension Color {
+    init(tvHex: String) {
+        let raw = tvHex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        guard raw.count == 6, let value = UInt64(raw, radix: 16) else {
+            self = TVStyle.red
+            return
+        }
+        self.init(red: Double((value >> 16) & 0xFF) / 255,
+                  green: Double((value >> 8) & 0xFF) / 255,
+                  blue: Double(value & 0xFF) / 255)
+    }
+}

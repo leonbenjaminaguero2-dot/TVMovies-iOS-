@@ -31,16 +31,18 @@ struct RootScreen: View {
     @AppStorage("tvmovies_user") private var username = ""
     @AppStorage("tvmovies_profiles_json") private var profilesJSON = "[]"
     @AppStorage("tvmovies_onboarded") private var onboarded = false
+    @State private var sessionActive = false
     @State private var selected: TVTab = .movies
     @State private var search = ""
-    @State private var platform = "Todas"
+    @AppStorage("tvmovies_platform") private var platform = "Netflix"
+    @AppStorage("tvmovies_accent") private var accentHex = "#e50914"
     @State private var openedItem: CatalogItem?
     @State private var showPlatformPicker = false
 
     var body: some View {
         Group {
-        if !onboarded || username.isEmpty {
-            TVMoviesOnboarding(username: $username, profilesJSON: $profilesJSON, onboarded: $onboarded, platform: $platform)
+        if !sessionActive || !onboarded || username.isEmpty {
+            TVMoviesOnboarding(username: $username, profilesJSON: $profilesJSON, onboarded: $onboarded, sessionActive: $sessionActive, platform: $platform)
         } else {
         TabView(selection: $selected) {
             tab(.movies) {
@@ -54,16 +56,16 @@ struct RootScreen: View {
             }
             tab(.account) {
                 screenShell {
-                    AccountScreen(username: $username)
+                    AccountScreen(username: $username, onboarded: $onboarded)
                 }
             }
             tab(.settings) {
                 screenShell {
-                    SettingsScreen(platform: platform)
+                    SettingsScreen(username: $username, onboarded: $onboarded)
                 }
             }
         }
-        .tint(TVStyle.red)
+        .tint(Color(tvHex: accentHex))
         // Sin barras dibujadas a mano: SwiftUI proporciona Liquid Glass
         // con respuesta nativa a la selección y transiciones del sistema.
         .preferredColorScheme(.dark)
@@ -78,9 +80,12 @@ struct RootScreen: View {
                 }
             }
         } message: {
-            Text("Elegí el servicio para filtrar películas y series. Los datos vienen de Firebase.")
+            Text("Elegí otra plataforma para continuar viendo contenido.")
         }
         }
+        }
+        .onChange(of: sessionActive) { _, active in
+            if active { selected = platform == "Canales" ? .channels : .movies }
         }
     }
 
@@ -92,7 +97,7 @@ struct RootScreen: View {
 
     private func catalogPage(_ kind: CatalogKind) -> some View {
         screenShell {
-            CatalogScreen(kind: kind, platform: platform, search: search) { item in
+            CatalogScreen(kind: kind, platform: kind == .channels ? "Canales" : platform, search: search) { item in
                 openedItem = item
             }
         }

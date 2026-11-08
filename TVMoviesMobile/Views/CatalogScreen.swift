@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CatalogScreen: View {
     @EnvironmentObject private var store: CatalogStore
+    @AppStorage("tvmovies_compact") private var compact = false
     let kind: CatalogKind
     let platform: String
     let search: String
@@ -30,7 +31,7 @@ struct CatalogScreen: View {
                 }
 
                 if store.isLoading {
-                    ProgressView("Cargando desde Firebase...")
+                    ProgressView("Cargando catálogo...")
                         .frame(maxWidth: .infinity, minHeight: 180)
                 } else if let error = store.errorMessage {
                     VStack(alignment: .leading, spacing: 10) {
@@ -51,7 +52,7 @@ struct CatalogScreen: View {
                         Text(search.isEmpty ? "Todo el catálogo" : "Resultados")
                             .font(.system(size: 23, weight: .bold))
                     }
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 13), GridItem(.flexible(), spacing: 13)], spacing: 16) {
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: compact ? 7 : 13), GridItem(.flexible(), spacing: compact ? 7 : 13)], spacing: compact ? 8 : 16) {
                         ForEach(entries) { entry in
                             Button { open(entry) } label: {
                                 CatalogTile(item: entry)
