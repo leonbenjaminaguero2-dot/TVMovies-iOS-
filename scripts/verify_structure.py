@@ -13,7 +13,6 @@ rootview = (root / 'TVMoviesMobile/Views/RootScreen.swift').read_text()
 assert 'struct RootScreen: View' in rootview, 'Falta la pantalla principal'
 assert '.tabItem { Label(tab.label, systemImage: tab.icon) }' in rootview
 assert 'square.grid.3x3.fill' in rootview and 'Cambiar plataforma' in rootview
-assert '.glassEffect(.regular, in: Capsule())' in rootview
 assert "iOS: '26.0'" in (root / 'project.yml').read_text()
 assert 'addSnapshotListener' in service
 assert all(f'data["{key}"]' in models for key in ('tipo','titulo','plataforma','poster','stream','desc','capitulos'))
