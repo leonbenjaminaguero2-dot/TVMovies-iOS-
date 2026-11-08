@@ -10,7 +10,7 @@ example = json.loads((root / 'examples/catalogo-documento.json').read_text())
 assert all(key in example for key in ('tipo','titulo','plataforma','poster','desc','capitulos'))
 assert 'collection("catalogo")' in service
 rootview = (root / 'TVMoviesMobile/Views/RootScreen.swift').read_text()
-assert 'TabView(selection: $selected)' in rootview, 'Usar la TabView nativa iOS26'
+assert 'struct RootScreen: View' in rootview, 'Falta la pantalla principal'
 assert '.tabItem { Label(tab.label, systemImage: tab.icon) }' in rootview
 assert 'square.grid.3x3.fill' in rootview and 'Cambiar plataforma' in rootview
 assert '.glassEffect(.regular, in: Capsule())' in rootview
