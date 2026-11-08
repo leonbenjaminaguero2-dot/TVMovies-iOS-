@@ -28,7 +28,9 @@ enum TVTab: Int, CaseIterable, Hashable {
 /// La TabView del sistema usa la barra flotante Liquid Glass REAL de iOS 26+.
 struct RootScreen: View {
     @EnvironmentObject private var store: CatalogStore
-    @AppStorage("tvmovies_user") private var username = "Benja"
+    @AppStorage("tvmovies_user") private var username = ""
+    @AppStorage("tvmovies_profiles_json") private var profilesJSON = "[]"
+    @AppStorage("tvmovies_onboarded") private var onboarded = false
     @State private var selected: TVTab = .movies
     @State private var search = ""
     @State private var platform = "Todas"
@@ -36,6 +38,10 @@ struct RootScreen: View {
     @State private var showPlatformPicker = false
 
     var body: some View {
+        Group {
+        if !onboarded || username.isEmpty {
+            TVMoviesOnboarding(username: $username, profilesJSON: $profilesJSON, onboarded: $onboarded, platform: $platform)
+        } else {
         TabView(selection: $selected) {
             tab(.movies) {
                 catalogPage(.movies)
@@ -65,13 +71,16 @@ struct RootScreen: View {
             DetailScreen(item: item)
         }
         .confirmationDialog("Cambiar plataforma", isPresented: $showPlatformPicker, titleVisibility: .visible) {
-            ForEach(store.platforms, id: \.self) { option in
+            ForEach(["Canales", "Netflix", "Disney+", "Prime Video"], id: \.self) { option in
                 Button(option + (option == platform ? " ✓" : "")) {
                     platform = option
+                    if option == "Canales" { selected = .channels } else if selected == .channels { selected = .movies }
                 }
             }
         } message: {
             Text("Elegí el servicio para filtrar películas y series. Los datos vienen de Firebase.")
+        }
+        }
         }
     }
 

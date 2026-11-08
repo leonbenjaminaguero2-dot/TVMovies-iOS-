@@ -60,6 +60,6 @@ final class CatalogStore: ObservableObject {
 
     var platforms: [String] {
         let actual = Set(items.filter { $0.kind != .channels }.map(\.platform).filter { !$0.isEmpty && $0 != "Todas" && $0 != "Canales" })
-        return ["Todas"] + actual.sorted()
+        return ["Todas", "Netflix", "Disney+", "Prime Video"] + actual.sorted().filter { !["Netflix", "Disney+", "Prime Video"].contains($0) }
     }
 }

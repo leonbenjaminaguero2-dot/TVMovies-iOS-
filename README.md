@@ -64,3 +64,8 @@ brew install xcodegen
 xcodegen generate --spec project.yml
 open TVMoviesMobile.xcodeproj
 ```
+
+
+## Fidelidad al HTML Movil(1).html
+
+Se añadió el flujo inicial de perfiles locales (crear/seleccionar) y elección de plataforma: Canales, Netflix, Disney+ y Prime Video. Los perfiles se almacenan en UserDefaults como en el HTML original se almacenaban en localStorage; **no son cuentas Firebase Authentication**. El catálogo sigue escuchando `catalogo` en Firestore. La barra inferior es TabView nativa de iOS 26+ para Liquid Glass auténtico. El diseño está adaptado a SwiftUI y no es una reproducción píxel por píxel del HTML. No se ha compilado en un runner macOS todavía.
