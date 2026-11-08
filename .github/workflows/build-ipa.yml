@@ -1,0 +1,112 @@
+name: TVMovies Mobile • Liquid Glass • IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [swift-native]
+    paths:
+      - 'TVMoviesMobile/**'
+      - 'project.yml'
+      - '.github/workflows/build-ipa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: iPhone · IPA sin firma
+    runs-on: macos-26
+    timeout-minutes: 60
+
+    steps:
+      - name: Obtener proyecto
+        uses: actions/checkout@v4
+
+      - name: Seleccionar Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.6.app/Contents/Developer
+          xcodebuild -version
+
+      - name: Instalar XcodeGen
+        run: |
+          brew install xcodegen
+          xcodegen --version
+
+      - name: Configurar Firebase iOS (obligatorio para la IPA funcional)
+        env:
+          FIREBASE_CONFIG_B64: ${{ secrets.FIREBASE_GOOGLESERVICE_INFO_BASE64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$FIREBASE_CONFIG_B64" ]]; then
+            echo '::error::Falta el secreto FIREBASE_GOOGLESERVICE_INFO_BASE64: no se creará una IPA sin catálogo.'
+            exit 1
+          fi
+          printf '%s' "$FIREBASE_CONFIG_B64" | base64 -D > TVMoviesMobile/GoogleService-Info.plist
+          plutil -lint TVMoviesMobile/GoogleService-Info.plist
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c 'Print :BUNDLE_ID' TVMoviesMobile/GoogleService-Info.plist)
+          PROJECT_ID=$(/usr/libexec/PlistBuddy -c 'Print :PROJECT_ID' TVMoviesMobile/GoogleService-Info.plist)
+          if [[ "$BUNDLE_ID" != 'com.tvmovies.mobile' ]]; then
+            echo "::error::El BUNDLE_ID de Firebase es $BUNDLE_ID pero debe ser com.tvmovies.mobile"
+            exit 1
+          fi
+          if [[ "$PROJECT_ID" != 'tvmovies-6b05d' ]]; then
+            echo "::error::El plist pertenece al proyecto $PROJECT_ID y no a tvmovies-6b05d"
+            exit 1
+          fi
+          echo 'Configuración Firebase iOS verificada.'
+
+      - name: Verificar contrato del proyecto
+        run: python3 scripts/verify_structure.py
+
+      - name: Generar proyecto Xcode
+        run: xcodegen generate --spec project.yml
+
+      - name: Resolver dependencias de Firebase
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project TVMoviesMobile.xcodeproj \
+            -scheme TVMoviesMobile \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/TVMoviesPackages"
+
+      - name: Compilar para iPhone (sin firma)
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project TVMoviesMobile.xcodeproj \
+            -scheme TVMoviesMobile \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/TVMoviesDerived" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/TVMoviesPackages" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            | tee "$RUNNER_TEMP/xcodebuild.log"
+
+      - name: Crear IPA sin firma y verificar paquete
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/TVMoviesDerived/Build/Products/Release-iphoneos/TVMoviesMobile.app"
+          test -d "$APP"
+          test -f "$APP/Info.plist"
+          test -f "$APP/TVMoviesMobile"
+          test -f "$APP/GoogleService-Info.plist"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload" dist
+          ditto "$APP" "$RUNNER_TEMP/ipa/Payload/TVMoviesMobile.app"
+          (
+            cd "$RUNNER_TEMP/ipa"
+            /usr/bin/zip -q -r "$GITHUB_WORKSPACE/dist/TVMoviesMobile-unsigned.ipa" Payload
+          )
+          unzip -l dist/TVMoviesMobile-unsigned.ipa | grep -F 'Payload/TVMoviesMobile.app/Info.plist'
+          ls -lh dist/TVMoviesMobile-unsigned.ipa
+
+      - name: Publicar IPA para descargar
+        uses: actions/upload-artifact@v4
+        with:
+          name: TVMoviesMobile-IPA-sin-firma
+          path: dist/TVMoviesMobile-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30
