@@ -1,0 +1,16 @@
+{
+  "tipo": "series",
+  "titulo": "Serie de ejemplo",
+  "plataforma": "Netflix",
+  "poster": "https://example.org/poster.jpg",
+  "backdrop": "https://example.org/banner.jpg",
+  "desc": "Descripción de ejemplo de TVMovies.",
+  "destacado": true,
+  "capitulos": [
+    {
+      "numero": 1,
+      "titulo": "Capítulo 1",
+      "link": "https://example.org/capitulo1.m3u8"
+    }
+  ]
+}
