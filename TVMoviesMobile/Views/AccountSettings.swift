@@ -37,9 +37,9 @@ struct AccountScreen: View {
                     Text("TVMOVIES / CUENTA")
                         .font(.system(size: 10, weight: .heavy)).tracking(2)
                         .foregroundStyle(accent)
-                    Text("Tu espacio")
+                    Text("¿Quién está viendo?")
                         .font(.system(size: 31, weight: .black)).tracking(-0.8)
-                    Text("Administrá tus perfiles, como en TVMovies Mobile.")
+                    Text("Selecciona o añade tu perfil")
                         .font(.subheadline).foregroundStyle(.white.opacity(0.58))
                 }
 
@@ -59,18 +59,8 @@ struct AccountScreen: View {
                 .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 17))
                 .overlay(RoundedRectangle(cornerRadius: 17).stroke(.white.opacity(0.12)))
 
-                HStack {
-                    Label("Mi lista", systemImage: "bookmark.fill")
-                        .font(.system(size: 15, weight: .semibold))
-                    Spacer()
-                    Text("\(countFavorites) guardados")
-                        .font(.subheadline).foregroundStyle(.white.opacity(0.55))
-                }
-                .padding(17)
-                .background(.white.opacity(0.045), in: RoundedRectangle(cornerRadius: 14))
-
                 VStack(alignment: .leading, spacing: 13) {
-                    Text("¿QUIÉN ESTÁ VIENDO?")
+                    Text("SELECCIONAR PERFIL")
                         .font(.system(size: 11, weight: .heavy)).tracking(1.7)
                         .foregroundStyle(accent)
                     ForEach(profiles, id: \.self) { name in
@@ -138,7 +128,7 @@ struct AccountScreen: View {
                 .buttonStyle(.glass)
                 .foregroundStyle(.white)
 
-                Text("Los perfiles se guardan solamente en este iPhone.")
+                Text("Cuentas locales guardadas en este iPhone.")
                     .font(.footnote).foregroundStyle(.white.opacity(0.43))
             }
             .padding(18)
@@ -209,6 +199,12 @@ struct SettingsScreen: View {
     @AppStorage("tvmovies_compact") private var compact = false
     @AppStorage("tvmovies_language") private var language = "es"
 
+    @AppStorage("tvmovies_profiles_json") private var profilesJSON = "[]"
+    private var profiles: [String] {
+        guard let data = profilesJSON.data(using: .utf8) else { return [] }
+        return (try? JSONDecoder().decode([String].self, from: data)) ?? []
+    }
+
     var body: some View {
         Form {
             Section {
@@ -236,7 +232,17 @@ struct SettingsScreen: View {
                 }
             }
             Section("Cuentas locales") {
-                Button("Administrar perfiles") {
+                ForEach(profiles, id: \.self) { name in
+                    HStack {
+                        Label(name, systemImage: "person.crop.circle")
+                        Spacer()
+                        Button("Eliminar", role: .destructive) {
+                            removeAccount(name)
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+                Button("Agregar cuenta") {
                     username = ""
                     onboarded = false
                 }
@@ -252,5 +258,15 @@ struct SettingsScreen: View {
         }
         .scrollContentBackground(.hidden)
         .background(TVStyle.background)
+    }
+
+    private func removeAccount(_ name: String) {
+        let remaining = profiles.filter { $0 != name }
+        if let data = try? JSONEncoder().encode(remaining),
+           let json = String(data: data, encoding: .utf8) { profilesJSON = json }
+        if username == name {
+            username = ""
+            onboarded = false
+        }
     }
 }

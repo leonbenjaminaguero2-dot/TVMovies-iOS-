@@ -71,13 +71,9 @@ open TVMoviesMobile.xcodeproj
 Se añadió el flujo inicial de perfiles locales (crear/seleccionar) y elección de plataforma: Canales, Netflix, Disney+ y Prime Video. Los perfiles se almacenan en UserDefaults como en el HTML original se almacenaban en localStorage; **no son cuentas Firebase Authentication**. El catálogo sigue escuchando `catalogo` en Firestore. La barra inferior es TabView nativa de iOS 26+ para Liquid Glass auténtico. El diseño está adaptado a SwiftUI y no es una reproducción píxel por píxel del HTML. No se ha compilado en un runner macOS todavía.
 
 
-## Rediseño de ingreso según `Movil(1).html` (8 nov 2026)
-
-- **Primera apertura:** creación de perfil local con nombre, validación y color de avatar. No pide email ni contraseña, igual que la web.
-- **Aperturas posteriores:** pantalla «¿Quién está viendo?» con tarjetas y opción de añadir perfil.
-- **Después del perfil:** selección de **Canales de TV, Netflix, Disney+ o Prime Video**, usando los logos SVG incrustados en el HTML convertidos en recursos PNG internos; la selección de plataforma queda guardada.
-- **Cuenta:** tarjetas de perfiles, cambio de nombre, selección o eliminación, con confirmación. Colores por perfil almacenados en el dispositivo.
-- **Ajustes:** color de énfasis, cuadrícula compacta e idioma guardado (el idioma elegido aún no traduce toda la interfaz). Sin configuración técnica de Firebase visible en la app.
-- **Catálogo:** Firestore en tiempo real; pestaña de Canales filtra siempre Canales; barra inferior nativa de Apple en iOS 26+.
-
-**Build:** `.github/workflows/build-ipa.yml` responde a cambios subidos tanto a `main` como a `swift-native`, o a ejecución manual. Necesita `FIREBASE_GOOGLESERVICE_INFO_BASE64` como secreto. No se ha probado una compilación completa Xcode ni la IPA en un dispositivo. Se ha validado la sintaxis Swift con `swiftc -frontend -parse` y la estructura con `scripts/verify_structure.py`.
+## Animaciones nativas añadidas
+- Transiciones de entrada/salida entre selección de perfil, creación y selección de plataforma con spring y fade.
+- Respuesta táctil de tarjetas y botones mediante `TVPressStyle` (escala/opacity).
+- Transiciones animadas de selección y cambio de plataforma, sin reemplazar la TabView Liquid Glass de Apple.
+- `accessibilityReduceMotion` desactiva las animaciones personalizadas para quien tenga activado Reducir movimiento.
+- Animaciones implementadas en SwiftUI, sin WebView. Falta verificar en un iPhone real.

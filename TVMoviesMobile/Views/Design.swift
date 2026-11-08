@@ -2,8 +2,8 @@ import SwiftUI
 
 enum TVStyle {
     static let red = Color(red: 0.92, green: 0.035, blue: 0.09)
-    static let background = Color(red: 0.042, green: 0.025, blue: 0.035)
-    static let secondary = Color(red: 0.13, green: 0.105, blue: 0.13)
+    static let background = Color(red: 5/255, green: 6/255, blue: 9/255)
+    static let secondary = Color(red: 0.09, green: 0.10, blue: 0.13)
     static let muted = Color(red: 0.66, green: 0.65, blue: 0.70)
 }
 

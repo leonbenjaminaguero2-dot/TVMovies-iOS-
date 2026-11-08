@@ -20,6 +20,7 @@ struct TVMoviesOnboarding: View {
     @State private var selectedAvatar = 0
     @State private var errorMessage = ""
     @FocusState private var nameFocused: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let avatarPalette: [Color] = [
         Color(red: 0.90, green: 0.05, blue: 0.10),
@@ -49,11 +50,17 @@ struct TVMoviesOnboarding: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     brand
-                    switch step {
-                    case .profiles: profilePage
-                    case .create: createPage
-                    case .platforms: platformPage
+                    ZStack(alignment: .topLeading) {
+                        switch step {
+                        case .profiles: profilePage
+                            .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .leading)), removal: .opacity))
+                        case .create: createPage
+                            .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .trailing)), removal: .opacity))
+                        case .platforms: platformPage
+                            .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .trailing)), removal: .opacity))
+                        }
                     }
+                    .animation(reduceMotion ? nil : TVMotion.page, value: step)
                     Text("TVMOVIES  ·  MOBILE")
                         .font(.system(size: 10, weight: .bold))
                         .tracking(2.3)
@@ -140,7 +147,7 @@ struct TVMoviesOnboarding: View {
                         .background(Color.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 19))
                         .overlay(RoundedRectangle(cornerRadius: 19).stroke(.white.opacity(0.10), lineWidth: 1))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(TVPressStyle())
                     .accessibilityLabel("Entrar con el perfil \(name)")
                 }
 
@@ -164,7 +171,7 @@ struct TVMoviesOnboarding: View {
                     .background(Color.white.opacity(0.025), in: RoundedRectangle(cornerRadius: 19))
                     .overlay(RoundedRectangle(cornerRadius: 19).stroke(.white.opacity(0.19), style: StrokeStyle(lineWidth: 1, dash: [6, 5])))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(TVPressStyle())
             }
             Text("Los perfiles se guardan únicamente en este iPhone.")
                 .font(.footnote).foregroundStyle(.white.opacity(0.42))
@@ -207,11 +214,12 @@ struct TVMoviesOnboarding: View {
                             }
                             .overlay(Circle().stroke(.white.opacity(selectedAvatar == index ? 0.9 : 0), lineWidth: 2).padding(-4))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(TVPressStyle())
                     .accessibilityLabel("Color de perfil \(index + 1)")
                 }
             }
             .padding(.bottom, 29)
+            .animation(reduceMotion ? nil : TVMotion.selection, value: selectedAvatar)
 
             Text("NOMBRE DEL PERFIL")
                 .font(.system(size: 11, weight: .bold)).tracking(1.5)
@@ -246,7 +254,7 @@ struct TVMoviesOnboarding: View {
                 .frame(height: 53)
                 .background(accent, in: RoundedRectangle(cornerRadius: 13))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(TVPressStyle())
             .padding(.top, 22)
 
             if !profiles.isEmpty {
@@ -295,7 +303,7 @@ struct TVMoviesOnboarding: View {
                     .padding(.vertical, 20)
             }
             .foregroundStyle(.white.opacity(0.64))
-            .buttonStyle(.plain)
+            .buttonStyle(TVPressStyle())
         }
     }
 
@@ -344,7 +352,7 @@ struct TVMoviesOnboarding: View {
             .frame(height: height)
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(.white.opacity(0.18), lineWidth: 1))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(TVPressStyle())
         .accessibilityLabel("Ver \(value)")
     }
 
@@ -355,6 +363,7 @@ struct TVMoviesOnboarding: View {
             .frame(width: diameter, height: diameter)
             .background(LinearGradient(colors: [avatarPalette[safeIndex], avatarPalette[safeIndex].opacity(0.5)], startPoint: .topLeading, endPoint: .bottomTrailing), in: Circle())
             .overlay(Circle().stroke(.white.opacity(0.16), lineWidth: 2))
+            .animation(reduceMotion ? nil : TVMotion.selection, value: index)
     }
 
     private func createProfile() {
